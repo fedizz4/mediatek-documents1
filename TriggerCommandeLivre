@@ -1,0 +1,50 @@
+Trigger pour commande de livre
+
+DELIMITER $$
+CREATE TRIGGER commandeLivreDvdLivree AFTER UPDATE ON commande FOR EACH ROW BEGIN
+        DECLARE v_idLivreDvd VARCHAR(10) ;
+        DECLARE dernierNumero INT(11) ;
+        DECLARE v_dateAchat DATE ;
+        DECLARE v_photo VARCHAR(100) ;
+        DECLARE v_nbExemplaire INT(11) ;
+
+        SELECT idLivreDvd INTO v_idLivreDvd
+            FROM commandedocument
+            WHERE id = NEW.id ;
+
+        SELECT dateCommande INTO v_dateAchat
+            FROM commande
+            WHERE id = NEW.id ;
+
+        SELECT image INTO v_photo
+            FROM document
+            WHERE id = NEW.id ;
+
+        SELECT nbExemplaire INTO v_nbExemplaire
+            FROM commandedocument
+            WHERE id = NEW.id ;
+
+    WHILE (v_nbExemplaire > 0) DO
+        SELECT numero INTO dernierNumero
+            FROM exemplaire
+            WHERE id = v_idLivreDvd
+            ORDER BY numero DESC
+            LIMIT 1 ;
+
+        IF (NEW.idSuivi = 2) THEN
+            IF (dernierNumero IS NULL) THEN
+                IF ((v_idLivreDvd >= 00000) AND (v_idLivreDvd < 10000)) THEN
+                    INSERT INTO exemplaire VALUES (v_idLivreDvd, 00001, v_dateAchat, v_photo, "00001") ;
+                ELSEIF (v_idLivreDvd >= 20000) THEN
+                    INSERT INTO exemplaire VALUES (v_idLivreDvd, 20001, v_dateAchat, v_photo, "00001") ;
+                END IF ;
+            ELSE
+                SET dernierNumero = dernierNumero + 1 ;
+                INSERT INTO exemplaire VALUES (v_idLivreDvd, dernierNumero, v_dateAchat, v_photo, "00001") ;
+            END IF ;
+        END IF ;
+        SET v_nbExemplaire = v_nbExemplaire - 1 ;
+       END WHILE ;
+    END
+$$
+DELIMITER ;

@@ -1,0 +1,25 @@
+--
+-- Triggers abonnement
+--
+DELIMITER $$
+CREATE TRIGGER `insAbonnement` BEFORE INSERT ON `abonnement` FOR EACH ROW BEGIN
+	IF ((NEW.idRevue < 10000) AND (NEW.idRevue >= 20000)) THEN
+    	SIGNAL SQLSTATE "45000"
+			SET MESSAGE_TEXT = "impossible d'insérer un commandedocument dans abonnement" ;
+    END IF ;
+END
+$$
+DELIMITER ;
+
+--
+-- Triggers commandedocument
+--
+DELIMITER $$
+CREATE TRIGGER `insCommandeDocument` BEFORE INSERT ON `commandedocument` FOR EACH ROW BEGIN
+	IF ((NEW.idLivreDvd >= 10000) AND (NEW.idLivreDvd < 20000)) THEN
+    	SIGNAL SQLSTATE "45000"
+			SET MESSAGE_TEXT = "impossible d'insérer un abonnement dans commandedocument" ;
+    END IF ;
+END
+$$
+DELIMITER ;
